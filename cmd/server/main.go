@@ -1,12 +1,8 @@
- 
-
-
 package main
 
 import (
 	"log"
 	"net/http"
-	"fmt"
 
 	"github.com/DiegoM739/ReSport/internal/config"
 	"github.com/DiegoM739/ReSport/internal/database"
@@ -20,33 +16,34 @@ func main() {
 
 	// 2. Conectar a base de datos
 	db := database.Conectar(cfg.DBPath)
-	_ = db // Por ahora no la usamos, pero ya está lista
 
-	// 3. Crear router de Gin
+	// 3. Migrar las tablas (CREA TODAS LAS TABLAS AUTOMÁTICAMENTE)
+	database.Migrar(db)
+
+	_ = db // todavía no la usamos en los handlers
+
+	// 4. Crear router de Gin
 	router := gin.Default()
 
-	// 4. Definir ruta de prueba
+	// 5. Ruta de bienvenida
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
-			"mensaje":   "Bienvenido a ReSport",
-			"version":   "0.1.0",
-			"estado":    "funcionando",
+			"mensaje": "Bienvenido a ReSport",
+			"version": "0.1.0",
+			"estado":  "funcionando",
 		})
 	})
 
-	// 5. Health check (estándar en backends profesionales)
+	// 6. Health check
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
 		})
 	})
 
-	// 6. Levantar servidor
+	// 7. Levantar servidor
 	log.Println("Servidor iniciando en puerto:", cfg.Port)
 	if err := router.Run(":" + cfg.Port); err != nil {
 		log.Fatalf("Error al levantar servidor: %v", err)
 	}
-
-	fmt.Println("Bienvenido")
 }
-
