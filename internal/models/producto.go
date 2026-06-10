@@ -14,12 +14,12 @@ type Categoria struct {
 // El campo Tipo diferencia físicos de digitales (patrón Single Table Inheritance).
 type Producto struct {
 	gorm.Model
-	Nombre      string  `gorm:"not null"`
+	Nombre      string `gorm:"not null"`
 	Descripcion string
 	Precio      float64 `gorm:"not null"`
 	Stock       int     `gorm:"default:0"`
 	Imagen      string
-	Tipo        string  `gorm:"not null"` // "fisico" o "digital"
+	Tipo        string `gorm:"not null"` // "fisico" o "digital"
 
 	// Campos específicos de producto físico
 	Peso        float64

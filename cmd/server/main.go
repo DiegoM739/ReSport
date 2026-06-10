@@ -6,6 +6,9 @@ import (
 
 	"github.com/DiegoM739/ReSport/internal/config"
 	"github.com/DiegoM739/ReSport/internal/database"
+	"github.com/DiegoM739/ReSport/internal/handlers"
+	"github.com/DiegoM739/ReSport/internal/repository"
+	"github.com/DiegoM739/ReSport/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,32 +17,36 @@ func main() {
 	cfg := config.Cargar()
 	log.Println("Configuración cargada. Entorno:", cfg.Env)
 
-	// 2. Conectar a base de datos
+	// 2. Conectar a base de datos y migrar
 	db := database.Conectar(cfg.DBPath)
-
-	// 3. Migrar las tablas (CREA TODAS LAS TABLAS AUTOMÁTICAMENTE)
 	database.Migrar(db)
 
-	_ = db // todavía no la usamos en los handlers
+	// 3. Inicializar capas (inyección de dependencias)
+	productoRepo := repository.NuevoProductoRepository(db)
+	productoService := services.NuevoProductoService(productoRepo)
+	productoHandler := handlers.NuevoProductoHandler(productoService)
 
 	// 4. Crear router de Gin
 	router := gin.Default()
 
-	// 5. Ruta de bienvenida
+	// 5. Rutas básicas
 	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"mensaje": "Bienvenido a ReSport",
-			"version": "0.1.0",
-			"estado":  "funcionando",
-		})
+		c.JSON(http.StatusOK, gin.H{"mensaje": "Bienvenido a ReSport"})
 	})
 
-	// 6. Health check
 	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-		})
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
+
+	// 6. Rutas de productos (agrupadas)
+	productos := router.Group("/productos")
+	{
+		productos.POST("", productoHandler.Crear)
+		productos.GET("", productoHandler.Listar)
+		productos.GET("/:id", productoHandler.Obtener)
+		productos.PUT("/:id", productoHandler.Actualizar)
+		productos.DELETE("/:id", productoHandler.Eliminar)
+	}
 
 	// 7. Levantar servidor
 	log.Println("Servidor iniciando en puerto:", cfg.Port)
@@ -47,3 +54,4 @@ func main() {
 		log.Fatalf("Error al levantar servidor: %v", err)
 	}
 }
+
