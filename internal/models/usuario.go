@@ -4,7 +4,7 @@ import "gorm.io/gorm"
 
 // Persona contiene los datos comunes a todos los usuarios.
 // NO es una tabla por sí misma: se embebe en Cliente y Administrador.
-// Esto es HERENCIA al estilo Go (composición).
+// Esto es HERENCIA al estilo Go es decir composición.
 type Persona struct {
 	Nombre   string `gorm:"not null"`
 	Email    string `gorm:"unique;not null"`

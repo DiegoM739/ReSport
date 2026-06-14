@@ -24,6 +24,7 @@ func (h *ProductoHandler) Crear(c *gin.Context) {
 	var producto models.Producto
 
 	// Convertir el JSON del body al struct Producto
+	// Si JSON esta mal formado devolver error
 	if err := c.ShouldBindJSON(&producto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

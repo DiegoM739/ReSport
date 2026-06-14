@@ -1,4 +1,11 @@
 package main
+/* 
+Autor: Diego Medina 
+Fecha: 13 de junio de 2026
+==== E-commerce====
+*/
+
+
 
 import (
 	"log"
