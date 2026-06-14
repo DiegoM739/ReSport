@@ -27,7 +27,7 @@ func main() {
 	// 3. Verificar si el admin ya existe (para no duplicarlo)
 	var contador int64
 	db.Model(&models.Administrador{}).
-		Where("email = ?", "admin@resport.com").
+		Where("email = ?", "adminDiego@gmail.com").
 		Count(&contador)
 
 	if contador > 0 {
