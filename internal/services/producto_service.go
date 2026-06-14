@@ -7,9 +7,9 @@ import (
 	"github.com/DiegoM739/ReSport/internal/repository"
 )
 
-// ProductoService contiene la lógica de negocio relacionada con productos.
+// ProductoService contiene la lógica de negocio para productos.
 type ProductoService struct {
-	repo repository.IProductoRepository // ← interface, no struct concreto
+	repo repository.IProductoRepository
 }
 
 // NuevoProductoService crea una nueva instancia del service.
@@ -17,9 +17,8 @@ func NuevoProductoService(repo repository.IProductoRepository) *ProductoService 
 	return &ProductoService{repo: repo}
 }
 
-// CrearProducto valida los datos y crea un producto.
+// CrearProducto valida y guarda un producto nuevo.
 func (s *ProductoService) CrearProducto(producto *models.Producto) error {
-	// === Reglas de negocio ===
 	if producto.Nombre == "" {
 		return errors.New("el nombre del producto es obligatorio")
 	}
@@ -32,36 +31,35 @@ func (s *ProductoService) CrearProducto(producto *models.Producto) error {
 	if producto.Tipo != "fisico" && producto.Tipo != "digital" {
 		return errors.New("el tipo debe ser 'fisico' o 'digital'")
 	}
-
-	// Si todo es válido, mandamos al repositorio
 	return s.repo.Crear(producto)
 }
 
 // ListarProductos devuelve todos los productos.
 func (s *ProductoService) ListarProductos() ([]models.Producto, error) {
-	return s.repo.ListarTodos()
+	return s.repo.Listar()
 }
 
-// ObtenerProducto busca un producto por ID.
+// ObtenerProducto busca un producto por su ID.
 func (s *ProductoService) ObtenerProducto(id uint) (*models.Producto, error) {
-	return s.repo.BuscarPorID(id)
+	producto, err := s.repo.BuscarPorID(id)
+	if err != nil {
+		return nil, errors.New("producto no encontrado")
+	}
+	return producto, nil
 }
 
-// ActualizarProducto valida y modifica un producto existente.
+// ActualizarProducto modifica un producto existente.
 func (s *ProductoService) ActualizarProducto(producto *models.Producto) error {
-	if producto.Nombre == "" {
-		return errors.New("el nombre del producto es obligatorio")
+	if producto.ID == 0 {
+		return errors.New("ID del producto es obligatorio")
 	}
 	if producto.Precio <= 0 {
 		return errors.New("el precio debe ser mayor a cero")
 	}
-	if producto.Stock < 0 {
-		return errors.New("el stock no puede ser negativo")
-	}
 	return s.repo.Actualizar(producto)
 }
 
-// EliminarProducto borra un producto del sistema.
+// EliminarProducto borra un producto por su ID.
 func (s *ProductoService) EliminarProducto(id uint) error {
 	return s.repo.Eliminar(id)
 }

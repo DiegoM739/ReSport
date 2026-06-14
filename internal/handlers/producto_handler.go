@@ -23,8 +23,7 @@ func NuevoProductoHandler(service *services.ProductoService) *ProductoHandler {
 func (h *ProductoHandler) Crear(c *gin.Context) {
 	var producto models.Producto
 
-	// Convertir el JSON del body al struct Producto
-	// Si JSON esta mal formado devolver error
+	// Parsear el JSON del body al struct Producto
 	if err := c.ShouldBindJSON(&producto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -36,7 +35,7 @@ func (h *ProductoHandler) Crear(c *gin.Context) {
 		return
 	}
 
-	// Responder con el producto creado (ya con ID)
+	// Responder con el producto creado
 	c.JSON(http.StatusCreated, producto)
 }
 
@@ -79,7 +78,7 @@ func (h *ProductoHandler) Actualizar(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	producto.ID = id // forzar el ID del param, no del body
+	producto.ID = id // forzar el ID del param
 
 	if err := h.service.ActualizarProducto(&producto); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

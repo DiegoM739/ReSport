@@ -1,13 +1,5 @@
 package handlers
 
-// Este handler maneja registro y login. Son rutas públicas
-/* 
-RegistroRequest: definimos una struct específica para el 
-JSON de entrada. Para no usar el model CLIENTE 
-Porque queremos controlar EXACTAMENTE qué campos acepta el endpoint. 
-Si recibieras un Cliente directo, el cliente podría 
-enviar campos como ID o CreatedAt y filtrar basura.
-*/
 import (
 	"net/http"
 
@@ -16,11 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// AuthHandler maneja las rutas de registro y login.
 type AuthHandler struct {
 	clienteService *services.ClienteService
 	authService    *services.AuthService
 }
 
+// NuevoAuthHandler crea una nueva instancia.
 func NuevoAuthHandler(clienteService *services.ClienteService, authService *services.AuthService) *AuthHandler {
 	return &AuthHandler{
 		clienteService: clienteService,
@@ -28,7 +22,7 @@ func NuevoAuthHandler(clienteService *services.ClienteService, authService *serv
 	}
 }
 
-// RegistroRequest define los datos que recibimos del cliente al registrar.
+// RegistroRequest define los datos del body para registro.
 type RegistroRequest struct {
 	Nombre   string `json:"nombre"`
 	Email    string `json:"email"`
@@ -39,31 +33,34 @@ type RegistroRequest struct {
 // Registro maneja POST /auth/registro
 func (h *AuthHandler) Registro(c *gin.Context) {
 	var req RegistroRequest
+
+	// Parsear el body
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
+	// Crear el cliente
 	cliente := &models.Cliente{
 		Persona: models.Persona{
 			Nombre:   req.Nombre,
 			Email:    req.Email,
-			Password: req.Password,
+			Telefono: req.Telefono,
 		},
-		Telefono: req.Telefono,
 	}
 
-	if err := h.clienteService.Registrar(cliente); err != nil {
+	// Llamar al service
+	if err := h.clienteService.Registrar(cliente, req.Password); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// IMPORTANTE: borrar la password de la respuesta (no devolvemos el hash)
+	// Borrar la password de la respuesta
 	cliente.Password = ""
 	c.JSON(http.StatusCreated, cliente)
 }
 
-// LoginRequest define los datos del login.
+// LoginRequest define los datos del body para login.
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -72,16 +69,24 @@ type LoginRequest struct {
 // Login maneja POST /auth/login
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
+
+	// Parsear el body
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	response, err := h.authService.Login(req.Email, req.Password)
+	// Login devuelve 3 valores: token, cliente, error
+	token, cliente, err := h.authService.Login(req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	// Responder con token + datos del cliente
+	c.JSON(http.StatusOK, gin.H{
+		"token":   token,
+		"user_id": cliente.ID,
+		"email":   cliente.Email,
+	})
 }

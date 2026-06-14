@@ -28,6 +28,7 @@ func main() {
 	db := database.Conectar(cfg.DBPath)
 	database.Migrar(db)
 
+
 	// === 2. Inicializar repositorios ===
 	productoRepo := repository.NuevoProductoRepository(db)
 	clienteRepo := repository.NuevoClienteRepository(db)
