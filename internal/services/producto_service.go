@@ -9,11 +9,11 @@ import (
 
 // ProductoService contiene la lógica de negocio relacionada con productos.
 type ProductoService struct {
-	repo *repository.ProductoRepository
+	repo repository.IProductoRepository // ← interface, no struct concreto
 }
 
 // NuevoProductoService crea una nueva instancia del service.
-func NuevoProductoService(repo *repository.ProductoRepository) *ProductoService {
+func NuevoProductoService(repo repository.IProductoRepository) *ProductoService {
 	return &ProductoService{repo: repo}
 }
 

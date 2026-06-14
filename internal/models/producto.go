@@ -32,9 +32,8 @@ type Producto struct {
 	CategoriaID uint
 	Categoria   Categoria
 }
-
+// método que encapsula la lógica de validación de stock 
 // VerificarStock comprueba si hay stock suficiente para una cantidad dada.
-// Esto es ENCAPSULACIÓN: la regla vive dentro del producto.
 func (p *Producto) VerificarStock(cantidad int) bool {
 	return p.Stock >= cantidad
 }

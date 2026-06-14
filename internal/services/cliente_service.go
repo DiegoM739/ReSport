@@ -1,8 +1,8 @@
 package services
 
 // Crea el usuario, encripta y hashea la contrseñ a
-// Obtiene un perfil y actualiza el perfil 
-// Sevice del registro  
+// Obtiene un perfil y actualiza el perfil
+// Sevice del registro
 
 import (
 	"errors"
@@ -13,10 +13,10 @@ import (
 )
 
 type ClienteService struct {
-	repo *repository.ClienteRepository
+	repo repository.IClienteRepository
 }
 
-func NuevoClienteService(repo *repository.ClienteRepository) *ClienteService {
+func NuevoClienteService(repo repository.IClienteRepository) *ClienteService {
 	return &ClienteService{repo: repo}
 }
 

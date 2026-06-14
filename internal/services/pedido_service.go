@@ -10,18 +10,18 @@ import (
 
 // PedidoService contiene la lógica de negocio de pedidos.
 type PedidoService struct {
-	pedidoRepo   *repository.PedidoRepository
-	carritoRepo  *repository.CarritoRepository
-	productoRepo *repository.ProductoRepository
+	pedidoRepo   repository.IPedidoRepository
+	carritoRepo  repository.ICarritoRepository
+	productoRepo repository.IProductoRepository
 	db           *gorm.DB
 }
 
 // NuevoPedidoService crea el service.
 // Recibe los 3 repositorios + la DB (para manejar transacciones).
 func NuevoPedidoService(
-	pedidoRepo *repository.PedidoRepository,
-	carritoRepo *repository.CarritoRepository,
-	productoRepo *repository.ProductoRepository,
+	pedidoRepo repository.IPedidoRepository,
+	carritoRepo repository.ICarritoRepository,
+	productoRepo repository.IProductoRepository,
 	db *gorm.DB,
 ) *PedidoService {
 	return &PedidoService{

@@ -9,20 +9,22 @@ import (
 
 // CarritoService contiene la lógica de negocios del carrito
 type CarritoService struct {
-	carritoRepo  *repository.CarritoRepository
-	productoRepo *repository.ProductoRepository
+    carritoRepo  repository.ICarritoRepository
+    productoRepo repository.IProductoRepository
 }
+
+
 
 // Herencia. NuevoCarritoService crea una nueva instancia del service
 // Necesita ambos repositorios porque trabaja con porductos y carrito
 func NuevoCarritoService(
-	carritoRepo *repository.CarritoRepository,
-	productoRepo *repository.ProductoRepository,
+    carritoRepo repository.ICarritoRepository,
+    productoRepo repository.IProductoRepository,
 ) *CarritoService {
-	return &CarritoService{
-		carritoRepo:  carritoRepo,
-		productoRepo: productoRepo,
-	}
+    return &CarritoService{
+        carritoRepo:  carritoRepo,
+        productoRepo: productoRepo,
+    }
 }
 
 // ObtenerCarrito devuelve el carrito del cliente con todos sus items.

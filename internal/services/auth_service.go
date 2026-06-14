@@ -1,4 +1,5 @@
 package services
+
 // Este service maneja el login y los tokens JWT.
 import (
 	"errors"
@@ -11,12 +12,15 @@ import (
 )
 
 type AuthService struct {
-	repo *repository.ClienteRepository
-	cfg  *config.Config
+    clienteRepo repository.IClienteRepository
+    config      *config.Config
 }
 
-func NuevoAuthService(repo *repository.ClienteRepository, cfg *config.Config) *AuthService {
-	return &AuthService{repo: repo, cfg: cfg}
+func NuevoAuthService(clienteRepo repository.IClienteRepository, cfg *config.Config) *AuthService {
+    return &AuthService{
+        clienteRepo: clienteRepo,
+        config:      cfg,
+    }
 }
 
 // LoginResponse es la respuesta que se devuelve al hacer login exitoso.
