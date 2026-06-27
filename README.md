@@ -440,13 +440,6 @@ Este proyecto integra los contenidos de las cuatro unidades de la materia de Pro
 
 ---
 
-## Licencia
-
-Proyecto academico desarrollado para la materia de Programacion Orientada a Objetos en la Universidad Internacional del Ecuador. Junio 2026.
-- Password: password123
-
----
-
 ## Endpoints de la API REST
 
 El sistema expone 15 endpoints REST con serializacion JSON. Los endpoints protegidos requieren el header Authorization con el formato: Bearer token.
