@@ -1,7 +1,7 @@
 package main
 
 /*
-Script de siembra (seed) para crear el administrador inicial.
+Script inicial para crear el administrador.
 Se ejecuta UNA SOLA VEZ con: go run cmd/seed/main.go
 */
 
@@ -14,58 +14,56 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const (
+	ADMIN_EMAIL    = "admin@resport.com"
+	ADMIN_PASSWORD = "admin123"
+	ADMIN_NOMBRE   = "Administrador Principal"
+	ADMIN_TELEFONO = "0999111222"
+)
+
 func main() {
-	// === 1. Cargar configuración del .env ===
 	cfg := config.Cargar()
 	log.Println("Configuración cargada para seed.")
 
-	// === 2. Conectar a la base de datos ===
 	db := database.Conectar(cfg.DBPath)
 	log.Println("Conexión a base de datos establecida.")
 
-	// === 3. Verificar si el admin ya existe (idempotencia) ===
-	// Evita crear duplicados si se ejecuta el seed varias veces.
+	// Verificar si el admin ya existe
 	var contador int64
 	db.Model(&models.Administrador{}).
-		Where("email = ?", "admin@resport.com").
+		Where("email = ?", ADMIN_EMAIL).
 		Count(&contador)
 
 	if contador > 0 {
-		log.Println("El administrador ya existe en la base de datos. No se crea de nuevo.")
+		log.Println("El administrador ya existe en la base de datos.")
 		return
 	}
 
-	// === 4. Hashear la contraseña con bcrypt ===
-	// Usamos el mismo algoritmo que para los clientes regulares.
-	passwordPlana := "admin123"
-	hash, err := bcrypt.GenerateFromPassword([]byte(passwordPlana), bcrypt.DefaultCost)
+	// Hashear la contraseña con bcrypt
+	hash, err := bcrypt.GenerateFromPassword([]byte(ADMIN_PASSWORD), bcrypt.DefaultCost)
 	if err != nil {
 		log.Fatalf("Error al hashear la contraseña: %v", err)
 	}
 
-	// === 5. Crear el administrador con sus datos ===
-	// Persona se embebe (herencia) y aporta los campos comunes:
-	// Nombre, Email, Password, Telefono.
+	// Crear el administrador
 	admin := models.Administrador{
 		Persona: models.Persona{
-			Nombre:   "Administrador Principal",
-			Email:    "admin@resport.com",
+			Nombre:   ADMIN_NOMBRE,
+			Email:    ADMIN_EMAIL,
 			Password: string(hash),
-			Telefono: "0999111222",
+			Telefono: ADMIN_TELEFONO,
 		},
 		Rol: "superadmin",
 	}
 
-	// === 6. Guardar en la base de datos ===
 	if err := db.Create(&admin).Error; err != nil {
 		log.Fatalf("Error al crear el administrador: %v", err)
 	}
 
-	// === 7. Confirmación visual ===
 	log.Println("==============================================")
-	log.Println("✓ Administrador creado correctamente:")
-	log.Println("  Email:    admin@gmail.com")
-	log.Println("  Password: admin123")
+	log.Println(" Administrador creado correctamente:")
+	log.Println("  Email:    " + ADMIN_EMAIL)
+	log.Println("  Password: " + ADMIN_PASSWORD)
 	log.Println("  Rol:      superadmin")
 	log.Println("==============================================")
 }

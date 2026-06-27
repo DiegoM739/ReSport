@@ -104,3 +104,76 @@ func (s *AuthService) ValidarToken(tokenString string) (uint, error) {
 
 	return uint(userIDFloat), nil
 }
+
+// LoginAdmin valida las credenciales de un administrador.
+func (s *AuthService) LoginAdmin(email, password string) (string, *models.Administrador, error) {
+	// 1. Buscar admin por email en la tabla administradores
+	var admin models.Administrador
+	if err := s.clienteRepo.BuscarAdminPorEmail(email, &admin); err != nil {
+		return "", nil, errors.New("credenciales inválidas")
+	}
+
+	// 2. Comparar contraseña con bcrypt
+	err := bcrypt.CompareHashAndPassword(
+		[]byte(admin.Password),
+		[]byte(password),
+	)
+	if err != nil {
+		return "", nil, errors.New("credenciales inválidas")
+	}
+
+	// 3. Generar token JWT especial para admin
+	token, err := s.GenerarTokenAdmin(admin.ID, admin.Rol)
+	if err != nil {
+		return "", nil, errors.New("error al generar token")
+	}
+
+	return token, &admin, nil
+}
+
+// GenerarTokenAdmin crea un token JWT con el rol del admin.
+func (s *AuthService) GenerarTokenAdmin(adminID uint, rol string) (string, error) {
+	expiracion := time.Now().Add(time.Duration(s.config.JWTExpirationHours) * time.Hour)
+
+	claims := jwt.MapClaims{
+		"admin_id": adminID,
+		"rol":      rol,
+		"exp":      expiracion.Unix(),
+		"iat":      time.Now().Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(s.config.JWTSecret))
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
+
+// ValidarTokenAdmin verifica un token y devuelve admin_id y rol.
+func (s *AuthService) ValidarTokenAdmin(tokenString string) (uint, string, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("método de firma inválido")
+		}
+		return []byte(s.config.JWTSecret), nil
+	})
+
+	if err != nil {
+		return 0, "", errors.New("token inválido")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return 0, "", errors.New("token inválido")
+	}
+
+	adminIDFloat, ok := claims["admin_id"].(float64)
+	if !ok {
+		return 0, "", errors.New("token sin admin_id")
+	}
+
+	rol, _ := claims["rol"].(string)
+
+	return uint(adminIDFloat), rol, nil
+}

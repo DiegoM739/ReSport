@@ -48,15 +48,37 @@ func main() {
 	clienteHandler := handlers.NuevoClienteHandler(clienteService)
 	carritoHandler := handlers.NuevoCarritoHandler(carritoService)
 	pedidoHandler := handlers.NuevoPedidoHandler(pedidoService)
+	adminHandler := handlers.NuevoAdminHandler(authService)
 
 	// === 5. Router ===
 	router := gin.Default()
+	router.LoadHTMLGlob("templates/*") 
 	router.SetTrustedProxies(nil) // silenciar el warning de proxies
 
-	// Rutas básicas
+	// === Rutas HTML (vistas) ===
 	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"mensaje": "Bienvenido a ReSport"})
+		c.HTML(http.StatusOK, "index.html", nil)
 	})
+	router.GET("/catalogo", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "catalogo.html", nil)
+	})
+	router.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.html", nil)
+	})
+	router.GET("/registro", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "registro.html", nil)
+	})
+	router.GET("/admin", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "admin.html", nil)
+	})
+	router.GET("/carrito-view", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "carrito.html", nil)
+	})
+	router.GET("/pedidos-view", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "pedidos.html", nil)
+	})
+
+	// Endpoints (JSON)
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok"})
 	})
@@ -85,6 +107,7 @@ func main() {
 		clientes.GET("/perfil", clienteHandler.ObtenerPerfil)
 		clientes.PUT("/perfil", clienteHandler.ActualizarPerfil)
 	}
+	
 
 	// Carrito (protegida)
 	carrito := router.Group("/carrito")
@@ -105,6 +128,23 @@ func main() {
 		pedidos.GET("", pedidoHandler.ListarPedidos)
 		pedidos.GET("/:id", pedidoHandler.ObtenerPedido)
 	}
+	// === RUTAS DE ADMINISTRADOR ===
+	router.POST("/admin/login", adminHandler.Login)
+
+	admin := router.Group("/admin")
+	admin.Use(middleware.AdminRequired(authService))
+	{
+		admin.GET("/dashboard", func(c *gin.Context) {
+			adminID, _ := c.Get("admin_id")
+			rol, _ := c.Get("rol")
+			c.JSON(http.StatusOK, gin.H{
+				"mensaje":  "Bienvenido al panel de administración",
+				"admin_id": adminID,
+				"rol":      rol,
+			})
+		})
+	}
+
 
 	// === 6. Levantar servidor ===
 	log.Println("Servidor iniciando en puerto:", cfg.Port)

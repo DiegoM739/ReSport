@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - ReSport</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .wordmark-re   { color: #2563EB; }
+        .wordmark-sport { color: #2563EB; }
+        .btn-carrito { transition: background 0.15s, transform 0.1s; }
+        .btn-carrito:active { transform: scale(0.97); }
+        #toast { transition: opacity 0.3s; }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+
+    <!-- NAV -->
+    <header class="border-b border-gray-100 px-6 py-4 sticky top-0 bg-white z-10">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="/" class="text-xl font-black tracking-tight">
+                <span class="wordmark-re">Re</span><span class="wordmark-sport">Sport</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <div id="nav-sesion" class="text-sm text-gray-400"></div>
+                <a href="/carrito-view" class="relative inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition">
+                    🛒 Carrito
+                    <span id="badge-carrito" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full">0</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed top-6 right-6 z-50 opacity-0 pointer-events-none">
+        <div class="bg-gray-900 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2">
+            <span id="toast-msg">✓ Producto agregado</span>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        <div class="flex items-end justify-between mb-8">
+            <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Catálogo</p>
+                <h1 class="text-4xl font-black text-gray-900 tracking-tight">Productos</h1>
+            </div>
+            <div id="estado-sesion" class="text-sm"></div>
+        </div>
+
+        <div id="productos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <p class="text-gray-400 text-sm">Cargando productos...</p>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        // Mostrar estado de sesión en nav
+        const navSesion = document.getElementById('nav-sesion');
+        if (token) {
+            navSesion.innerHTML = `<span class="text-emerald-600 font-semibold">● Sesión activa</span>`;
+        } else {
+            navSesion.innerHTML = `<a href="/login" class="text-blue-600 font-semibold hover:underline">Iniciar sesión</a>`;
+        }
+
+        // Mostrar toast
+        function showToast(msg, ok = true) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.querySelector('div').className = `${ok ? 'bg-gray-900' : 'bg-red-600'} text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2`;
+            toast.style.opacity = '1';
+            toast.style.pointerEvents = 'auto';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.pointerEvents = 'none';
+            }, 2500);
+        }
+
+        // Agregar al carrito
+        async function agregarAlCarrito(productoId, nombre) {
+            if (!token) {
+                showToast('⚠ Debes iniciar sesión primero', false);
+                setTimeout(() => window.location.href = '/login', 1500);
+                return;
+            }
+            const btn = document.getElementById('btn-' + productoId);
+            btn.disabled = true;
+            btn.textContent = 'Agregando...';
+            try {
+                const res = await fetch('/carrito/items', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ producto_id: productoId, cantidad: 1 })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('✓ ' + nombre + ' agregado al carrito');
+                    actualizarBadge();
+                } else {
+                    showToast('✗ ' + (data.error || 'Error al agregar'), false);
+                }
+            } catch (e) {
+                showToast('✗ Error de conexión', false);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Agregar al carrito';
+            }
+        }
+
+        // Actualizar contador del carrito en nav
+        async function actualizarBadge() {
+            if (!token) return;
+            try {
+                const res = await fetch('/carrito', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                const items = data.items || data.Items || [];
+                const badge = document.getElementById('badge-carrito');
+                if (items.length > 0) {
+                    badge.textContent = items.length;
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                }
+            } catch (e) {}
+        }
+
+        // Cargar productos
+        fetch('/productos')
+            .then(r => r.json())
+            .then(productos => {
+                const contenedor = document.getElementById('productos');
+                if (!productos || productos.length === 0) {
+                    contenedor.innerHTML = '<p class="text-gray-400 text-sm">No hay productos disponibles.</p>';
+                    return;
+                }
+                contenedor.innerHTML = productos.map(p => `
+                    <div class="border border-gray-100 rounded-2xl p-6 hover:border-blue-200 hover:shadow-md transition flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="text-base font-bold text-gray-900 leading-tight">${p.Nombre}</h3>
+                                <span class="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full uppercase ml-2 shrink-0">${p.Tipo}</span>
+                            </div>
+                            <p class="text-gray-500 text-sm mb-4 min-h-[36px]">${p.Descripcion || 'Sin descripción'}</p>
+                        </div>
+                        <div>
+                            <div class="flex items-end justify-between mb-4">
+                                <span class="text-2xl font-black text-gray-900">$${p.Precio.toFixed(2)}</span>
+                                <span class="text-xs font-medium ${p.Stock > 0 ? 'text-gray-400' : 'text-red-400'}">${p.Stock > 0 ? p.Stock + ' en stock' : 'Sin stock'}</span>
+                            </div>
+                            <button
+                                id="btn-${p.ID}"
+                                onclick="agregarAlCarrito(${p.ID}, '${p.Nombre.replace(/'/g, "\\'")}')"
+                                ${p.Stock === 0 ? 'disabled' : ''}
+                                class="btn-carrito w-full py-2.5 rounded-xl text-sm font-bold transition
+                                    ${p.Stock > 0
+                                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                                        : 'bg-gray-100 text-gray-400 cursor-not-allowed'}">
+                                ${p.Stock > 0 ? 'Agregar al carrito' : 'Sin stock'}
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                actualizarBadge();
+            })
+            .catch(() => {
+                document.getElementById('productos').innerHTML = '<p class="text-red-500 text-sm">Error al cargar productos.</p>';
+            });
+    </script>
+</body>
+</html>

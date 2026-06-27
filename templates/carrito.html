@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito - ReSport</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .wordmark-re   { color: #2563EB; }
+        .wordmark-sport { color: #2563EB; }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex flex-col">
+
+    <header class="border-b border-gray-100 px-6 py-4 sticky top-0 bg-white z-10">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <a href="/" class="text-xl font-black tracking-tight">
+                <span class="wordmark-re">Re</span><span class="wordmark-sport">Sport</span>
+            </a>
+            <a href="/catalogo" class="text-sm text-gray-400 hover:text-gray-700 transition">← Seguir comprando</a>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl mx-auto px-6 py-10 w-full">
+        <div class="mb-8">
+            <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Mi compra</p>
+            <h1 class="text-4xl font-black text-gray-900 tracking-tight">Carrito</h1>
+        </div>
+
+        <div id="loading" class="text-gray-400 text-sm py-10 text-center">Cargando carrito...</div>
+
+        <div id="sin-sesion" class="hidden text-center py-16">
+            <p class="text-gray-500 mb-4">Debes iniciar sesión para ver tu carrito.</p>
+            <a href="/login" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition">Iniciar sesión</a>
+        </div>
+
+        <div id="vacio" class="hidden text-center py-16">
+            <p class="text-5xl mb-4">🛒</p>
+            <p class="text-gray-500 mb-4">Tu carrito está vacío.</p>
+            <a href="/catalogo" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition">Ver catálogo</a>
+        </div>
+
+        <div id="carrito-content" class="hidden">
+            <div class="lg:grid lg:grid-cols-3 lg:gap-8">
+
+                <div class="lg:col-span-2 space-y-3 mb-6 lg:mb-0" id="lista-items"></div>
+
+                <div class="lg:col-span-1">
+                    <div class="border border-gray-100 rounded-2xl p-6 sticky top-24">
+                        <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Resumen</p>
+                        <div class="space-y-2 mb-4 text-sm text-gray-600" id="resumen-items"></div>
+                        <div class="border-t border-gray-100 pt-4 mb-6">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-gray-900">Total</span>
+                                <span class="text-2xl font-black text-gray-900" id="total">$0.00</span>
+                            </div>
+                        </div>
+
+                        <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Método de pago</p>
+                        <div class="space-y-2 mb-4">
+                            <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition">
+                                <input type="radio" name="metodo" value="tarjeta" checked class="accent-blue-600" onchange="mostrarFormPago('tarjeta')">
+                                <span class="text-sm font-semibold text-gray-700">💳 Tarjeta</span>
+                            </label>
+                            <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 transition">
+                                <input type="radio" name="metodo" value="transferencia" class="accent-blue-600" onchange="mostrarFormPago('transferencia')">
+                                <span class="text-sm font-semibold text-gray-700">🏦 Transferencia</span>
+                            </label>
+                        </div>
+
+                        <!-- Formulario Tarjeta -->
+                        <div id="form-tarjeta" class="space-y-2 mb-4">
+                            <input id="numero_tarjeta" type="text" placeholder="Número de tarjeta" maxlength="19"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400">
+                            <input id="titular" type="text" placeholder="Nombre del titular"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400">
+                            <div class="grid grid-cols-2 gap-2">
+                                <input id="fecha_expiracion" type="text" placeholder="MM/AA" maxlength="5"
+                                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400">
+                                <input id="cvv" type="text" placeholder="CVV" maxlength="4"
+                                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400">
+                            </div>
+                        </div>
+
+                        <!-- Formulario Transferencia -->
+                        <div id="form-transferencia" class="space-y-2 mb-4 hidden">
+                            <input id="banco" type="text" placeholder="Banco"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400">
+                            <input id="numero_cuenta" type="text" placeholder="Número de cuenta"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400">
+                            <input id="comprobante" type="text" placeholder="Número de comprobante"
+                                class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-blue-400">
+                        </div>
+
+                        <button id="btn-confirmar" onclick="confirmarPedido()"
+                            class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm transition">
+                            Confirmar pedido
+                        </button>
+
+                        <button onclick="vaciarCarrito()"
+                            class="w-full mt-2 text-red-400 hover:text-red-600 text-xs font-semibold py-2 transition">
+                            Vaciar carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="mensaje" class="hidden mt-6 p-4 rounded-xl text-sm"></div>
+
+        <div id="pedido-ok" class="hidden text-center py-16">
+            <p class="text-5xl mb-4">✅</p>
+            <h2 class="text-2xl font-black text-gray-900 mb-2">¡Pedido confirmado!</h2>
+            <p class="text-gray-500 mb-2" id="pedido-detalle"></p>
+            <div class="flex justify-center gap-3 mt-6">
+                <a href="/catalogo" class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-sm transition">Seguir comprando</a>
+                <a href="/pedidos-view" class="inline-block border border-gray-200 hover:border-gray-400 text-gray-700 font-bold px-6 py-3 rounded-xl text-sm transition">Ver mis pedidos</a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('sin-sesion').classList.remove('hidden');
+        } else {
+            cargarCarrito();
+        }
+
+        async function cargarCarrito() {
+            try {
+                const res = await fetch('/carrito', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.status === 401) {
+                    localStorage.removeItem('token');
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('sin-sesion').classList.remove('hidden');
+                    return;
+                }
+                const data = await res.json();
+
+                // ← LA CORRECCIÓN CLAVE: el JSON viene como { carrito: { Items: [] }, total: X }
+                const items = data.carrito?.Items || [];
+                const totalBackend = data.total || 0;
+
+                document.getElementById('loading').classList.add('hidden');
+
+                if (items.length === 0) {
+                    document.getElementById('vacio').classList.remove('hidden');
+                    return;
+                }
+
+                document.getElementById('carrito-content').classList.remove('hidden');
+                renderItems(items, totalBackend);
+
+            } catch (e) {
+                document.getElementById('loading').classList.add('hidden');
+                mostrarMensaje('Error de conexión', false);
+            }
+        }
+
+        function renderItems(items, totalBackend) {
+            document.getElementById('lista-items').innerHTML = items.map(item => {
+                const nombre   = item.Producto?.Nombre || 'Producto';
+                const precio   = item.Producto?.Precio || 0;
+                const cantidad = item.Cantidad || 1;
+                const itemId   = item.ID;
+                return `
+                <div class="border border-gray-100 rounded-2xl p-5 flex items-center justify-between gap-4">
+                    <div class="flex-1">
+                        <p class="font-bold text-gray-900 text-sm">${nombre}</p>
+                        <p class="text-gray-400 text-xs mt-0.5">$${Number(precio).toFixed(2)} c/u</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="cambiarCantidad(${itemId}, ${cantidad - 1})"
+                            class="w-7 h-7 rounded-lg border border-gray-200 text-gray-600 hover:border-blue-400 font-bold text-sm transition flex items-center justify-center">−</button>
+                        <span class="w-6 text-center text-sm font-bold text-gray-900">${cantidad}</span>
+                        <button onclick="cambiarCantidad(${itemId}, ${cantidad + 1})"
+                            class="w-7 h-7 rounded-lg border border-gray-200 text-gray-600 hover:border-blue-400 font-bold text-sm transition flex items-center justify-center">+</button>
+                    </div>
+                    <div class="text-right min-w-[60px]">
+                        <p class="font-black text-gray-900 text-sm">$${(precio * cantidad).toFixed(2)}</p>
+                    </div>
+                    <button onclick="eliminarItem(${itemId})"
+                        class="text-gray-300 hover:text-red-400 transition text-lg ml-1" title="Eliminar">×</button>
+                </div>`;
+            }).join('');
+
+            // Resumen lateral
+            document.getElementById('resumen-items').innerHTML = items.map(item => {
+                const nombre   = item.Producto?.Nombre || 'Producto';
+                const precio   = item.Producto?.Precio || 0;
+                const cantidad = item.Cantidad || 1;
+                return `<div class="flex justify-between">
+                    <span>${nombre} ×${cantidad}</span>
+                    <span class="font-semibold text-gray-800">$${(precio * cantidad).toFixed(2)}</span>
+                </div>`;
+            }).join('');
+
+            document.getElementById('total').textContent = '$' + Number(totalBackend).toFixed(2);
+        }
+
+        async function cambiarCantidad(itemId, nuevaCantidad) {
+            if (nuevaCantidad < 1) { eliminarItem(itemId); return; }
+            try {
+                const res = await fetch('/carrito/items/' + itemId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ cantidad: nuevaCantidad })
+                });
+                if (res.ok) cargarCarrito();
+                else mostrarMensaje('No hay suficiente stock', false);
+            } catch (e) { mostrarMensaje('Error de conexión', false); }
+        }
+
+        async function eliminarItem(itemId) {
+            try {
+                const res = await fetch('/carrito/items/' + itemId, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.ok) cargarCarrito();
+            } catch (e) { mostrarMensaje('Error al eliminar', false); }
+        }
+
+        async function vaciarCarrito() {
+            if (!confirm('¿Vaciar todo el carrito?')) return;
+            try {
+                const res = await fetch('/carrito', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.ok) cargarCarrito();
+            } catch (e) { mostrarMensaje('Error al vaciar carrito', false); }
+        }
+
+        function mostrarFormPago(tipo) {
+            document.getElementById('form-tarjeta').classList.toggle('hidden', tipo !== 'tarjeta');
+            document.getElementById('form-transferencia').classList.toggle('hidden', tipo !== 'transferencia');
+        }
+
+        async function confirmarPedido() {
+            const metodoPago = document.querySelector('input[name="metodo"]:checked').value;
+            const btn = document.getElementById('btn-confirmar');
+
+            // Construir payload según método
+            let payload = { metodo_pago: metodoPago };
+
+            if (metodoPago === 'tarjeta') {
+                const numero  = document.getElementById('numero_tarjeta').value.trim();
+                const titular = document.getElementById('titular').value.trim();
+                const fecha   = document.getElementById('fecha_expiracion').value.trim();
+                const cvv     = document.getElementById('cvv').value.trim();
+                if (!numero || !titular || !fecha || !cvv) {
+                    mostrarMensaje('✗ Completa todos los datos de la tarjeta', false);
+                    return;
+                }
+                payload.datos_tarjeta = { numero_tarjeta: numero, titular, fecha_expiracion: fecha, cvv };
+            } else {
+                const banco   = document.getElementById('banco').value.trim();
+                const cuenta  = document.getElementById('numero_cuenta').value.trim();
+                const compro  = document.getElementById('comprobante').value.trim();
+                if (!banco || !cuenta || !compro) {
+                    mostrarMensaje('✗ Completa todos los datos de transferencia', false);
+                    return;
+                }
+                payload.datos_transferencia = { banco, numero_cuenta: cuenta, comprobante: compro };
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Procesando...';
+            try {
+                const res = await fetch('/pedidos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('carrito-content').classList.add('hidden');
+                    document.getElementById('pedido-ok').classList.remove('hidden');
+                    const pedidoId = data.pedido?.ID || data.ID || '';
+                    const total    = data.pedido?.Total || data.Total || data.total || '';
+                    document.getElementById('pedido-detalle').textContent =
+                        `Pedido #${pedidoId} · ${metodoPago} · Total: $${Number(total).toFixed(2)}`;
+                } else {
+                    mostrarMensaje('✗ ' + (data.error || 'Error al procesar el pedido'), false);
+                    btn.disabled = false;
+                    btn.textContent = 'Confirmar pedido';
+                }
+            } catch (e) {
+                mostrarMensaje('✗ Error de conexión', false);
+                btn.disabled = false;
+                btn.textContent = 'Confirmar pedido';
+            }
+        }
+
+        function mostrarMensaje(msg, ok = true) {
+            const el = document.getElementById('mensaje');
+            el.className = `mt-6 p-4 rounded-xl text-sm ${ok ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-red-50 border border-red-200 text-red-700'}`;
+            el.textContent = msg;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+    </script>
+</body>
+</html>

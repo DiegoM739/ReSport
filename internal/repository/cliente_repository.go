@@ -45,3 +45,8 @@ func (r *ClienteRepository) BuscarPorID(id uint) (*models.Cliente, error) {
 func (r *ClienteRepository) Actualizar(cliente *models.Cliente) error {
 	return r.db.Save(cliente).Error
 }
+
+// BuscarAdminPorEmail busca un administrador por email.
+func (r *ClienteRepository) BuscarAdminPorEmail(email string, admin *models.Administrador) error {
+	return r.db.Where("email = ?", email).First(admin).Error
+}

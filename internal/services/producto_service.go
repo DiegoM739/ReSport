@@ -50,13 +50,17 @@ func (s *ProductoService) ObtenerProducto(id uint) (*models.Producto, error) {
 
 // ActualizarProducto modifica un producto existente.
 func (s *ProductoService) ActualizarProducto(producto *models.Producto) error {
-	if producto.ID == 0 {
-		return errors.New("ID del producto es obligatorio")
-	}
-	if producto.Precio <= 0 {
-		return errors.New("el precio debe ser mayor a cero")
-	}
-	return s.repo.Actualizar(producto)
+    if producto.ID == 0 {
+        return errors.New("ID del producto es obligatorio")
+    }
+    if producto.Precio <= 0 {
+        return errors.New("el precio debe ser mayor a cero")
+    }
+    // ← AGREGA ESTA LÍNEA:
+    if producto.Stock < 0 {
+        return errors.New("el stock no puede ser negativo")
+    }
+    return s.repo.Actualizar(producto)
 }
 
 // EliminarProducto borra un producto por su ID.

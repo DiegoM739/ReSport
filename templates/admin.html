@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - ReSport</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .wordmark-re   { color: #2563EB; }
+        .wordmark-sport { color: #2563EB; }
+        input:focus { outline: none; border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+        select:focus { outline: none; border-color: #2563EB; }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex flex-col">
+
+    <header class="border-b border-gray-100 px-6 py-4 sticky top-0 bg-white z-10">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <a href="/" class="text-xl font-black tracking-tight">
+                <span class="wordmark-re">Re</span><span class="wordmark-sport">Sport</span>
+            </a>
+            <div id="nav-admin" class="hidden items-center gap-4">
+                <span class="text-xs font-bold uppercase tracking-widest text-blue-600">● Admin activo</span>
+                <button onclick="cerrarSesion()" class="text-sm text-gray-400 hover:text-red-500 transition">Cerrar sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== LOGIN ===== -->
+    <div id="vista-login" class="flex-1 flex items-center justify-center px-4 py-12">
+        <div class="w-full max-w-md">
+            <div class="mb-8">
+                <div class="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                    Acceso restringido
+                </div>
+                <h1 class="text-3xl font-black text-gray-900 tracking-tight">Panel de<br>Administrador</h1>
+            </div>
+            <form id="adminForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                    <input type="email" id="email" required value="admin@resport.com"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Contraseña</label>
+                    <input type="password" id="password" required
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 transition">
+                </div>
+                <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl transition text-sm tracking-wide">
+                    Acceder al panel
+                </button>
+            </form>
+            <div id="login-error" class="mt-5 p-4 rounded-xl text-sm bg-red-50 border border-red-200 text-red-700 hidden"></div>
+            <div class="mt-8 text-center">
+                <a href="/" class="text-sm text-gray-400 hover:text-gray-600 transition">← Volver al inicio</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== PANEL PRINCIPAL ===== -->
+    <div id="vista-panel" class="hidden flex-1 max-w-5xl mx-auto px-6 py-10 w-full">
+
+        <!-- Tabs -->
+        <div class="flex gap-2 mb-8 border-b border-gray-100 pb-0">
+            <button onclick="mostrarTab('productos')" id="tab-productos"
+                class="tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-blue-600 text-blue-600 -mb-px transition">
+                Productos
+            </button>
+            <button onclick="mostrarTab('nuevo')" id="tab-nuevo"
+                class="tab-btn px-4 py-2.5 text-sm font-bold border-b-2 border-transparent text-gray-400 -mb-px transition hover:text-gray-700">
+                + Nuevo producto
+            </button>
+        </div>
+
+        <!-- TAB: Lista de productos -->
+        <div id="panel-productos">
+            <div class="flex items-center justify-between mb-4">
+                <p class="text-xs font-bold uppercase tracking-widest text-gray-400">Gestión de inventario</p>
+                <button onclick="cargarProductos()" class="text-xs text-blue-600 hover:underline font-semibold">↻ Actualizar</button>
+            </div>
+            <div id="lista-productos" class="space-y-3">
+                <p class="text-gray-400 text-sm">Cargando...</p>
+            </div>
+        </div>
+
+        <!-- TAB: Nuevo producto -->
+        <div id="panel-nuevo" class="hidden max-w-lg">
+            <p class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6">Nuevo producto</p>
+            <form id="form-nuevo" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nombre</label>
+                    <input type="text" id="n-nombre" required
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Descripción</label>
+                    <input type="text" id="n-descripcion"
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 transition">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Precio ($)</label>
+                        <input type="number" id="n-precio" required min="0" step="0.01"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Stock</label>
+                        <input type="number" id="n-stock" required min="0"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 transition">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Tipo</label>
+                    <select id="n-tipo" class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 transition">
+                        <option value="fisico">Físico</option>
+                        <option value="digital">Digital</option>
+                    </select>
+                </div>
+                <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition">
+                    Crear producto
+                </button>
+            </form>
+            <div id="nuevo-msg" class="mt-4 p-4 rounded-xl text-sm hidden"></div>
+        </div>
+
+        <!-- Modal editar -->
+        <div id="modal-editar" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
+            <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                <h2 class="text-lg font-black text-gray-900 mb-5">Editar producto</h2>
+                <input type="hidden" id="edit-id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Nombre</label>
+                        <input type="text" id="edit-nombre"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 transition">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1.5">Descripción</label>
+                        <input type="text" id="edit-descripcion"
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 transition">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Precio ($)</label>
+                            <input type="number" id="edit-precio" min="0" step="0.01"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Stock</label>
+                            <input type="number" id="edit-stock" min="0"
+                                class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm text-gray-900 transition"
+                                onchange="if(this.value < 0) this.value = 0;">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="guardarEdicion()"
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition">
+                        Guardar cambios
+                    </button>
+                    <button onclick="cerrarModal()"
+                        class="flex-1 border border-gray-200 hover:border-gray-400 text-gray-700 font-bold py-3 rounded-xl text-sm transition">
+                        Cancelar
+                    </button>
+                </div>
+                <div id="edit-msg" class="mt-3 p-3 rounded-xl text-sm hidden"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="toast-inner" class="bg-gray-900 text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg"></div>
+    </div>
+
+    <script>
+        let adminToken = null;
+
+        // LOGIN
+        document.getElementById('adminForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const err = document.getElementById('login-error');
+            try {
+                const res = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    err.textContent = '✗ ' + (data.error || 'Credenciales inválidas');
+                    err.classList.remove('hidden');
+                    return;
+                }
+                adminToken = data.token;
+                err.classList.add('hidden');
+                document.getElementById('vista-login').classList.add('hidden');
+                document.getElementById('vista-panel').classList.remove('hidden');
+                document.getElementById('vista-panel').classList.add('flex');
+                document.getElementById('nav-admin').classList.remove('hidden');
+                document.getElementById('nav-admin').classList.add('flex');
+                cargarProductos();
+            } catch (e) {
+                err.textContent = '✗ Error de conexión';
+                err.classList.remove('hidden');
+            }
+        });
+
+        // TABS
+        function mostrarTab(tab) {
+            document.getElementById('panel-productos').classList.toggle('hidden', tab !== 'productos');
+            document.getElementById('panel-nuevo').classList.toggle('hidden', tab !== 'nuevo');
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('border-blue-600', 'text-blue-600');
+                b.classList.add('border-transparent', 'text-gray-400');
+            });
+            const active = document.getElementById('tab-' + tab);
+            active.classList.add('border-blue-600', 'text-blue-600');
+            active.classList.remove('border-transparent', 'text-gray-400');
+        }
+
+        // CARGAR PRODUCTOS
+        async function cargarProductos() {
+            const lista = document.getElementById('lista-productos');
+            lista.innerHTML = '<p class="text-gray-400 text-sm">Cargando...</p>';
+            try {
+                const res = await fetch('/productos');
+                const productos = await res.json();
+                if (!productos || productos.length === 0) {
+                    lista.innerHTML = '<p class="text-gray-400 text-sm">No hay productos.</p>';
+                    return;
+                }
+                lista.innerHTML = productos.map(p => `
+                    <div class="border border-gray-100 rounded-2xl p-5 flex items-center justify-between gap-4 hover:border-blue-100 transition">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <p class="font-bold text-gray-900 text-sm">${p.Nombre}</p>
+                                <span class="bg-gray-100 text-gray-500 text-xs font-semibold px-2 py-0.5 rounded-full uppercase">${p.Tipo}</span>
+                            </div>
+                            <p class="text-xs text-gray-400">${p.Descripcion || 'Sin descripción'}</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="font-black text-gray-900 text-sm">$${Number(p.Precio).toFixed(2)}</p>
+                            <p class="text-xs mt-0.5 font-semibold ${p.Stock <= 5 ? 'text-red-500' : 'text-gray-400'}">${p.Stock} en stock</p>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <button onclick="abrirEditar(${p.ID}, '${p.Nombre.replace(/'/g,"\\'")}', '${(p.Descripcion||'').replace(/'/g,"\\'")}', ${p.Precio}, ${p.Stock})"
+                                class="px-3 py-2 border border-gray-200 hover:border-blue-400 text-gray-600 hover:text-blue-600 rounded-lg text-xs font-bold transition">
+                                Editar
+                            </button>
+                            <button onclick="eliminarProducto(${p.ID}, '${p.Nombre.replace(/'/g,"\\'")}' )"
+                                class="px-3 py-2 border border-gray-200 hover:border-red-400 text-gray-600 hover:text-red-500 rounded-lg text-xs font-bold transition">
+                                Eliminar
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                lista.innerHTML = '<p class="text-red-500 text-sm">Error al cargar productos.</p>';
+            }
+        }
+
+        // CREAR PRODUCTO
+        document.getElementById('form-nuevo').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('nuevo-msg');
+            try {
+                const res = await fetch('/productos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken },
+                    body: JSON.stringify({
+                        nombre:      document.getElementById('n-nombre').value,
+                        descripcion: document.getElementById('n-descripcion').value,
+                        precio:      parseFloat(document.getElementById('n-precio').value),
+                        stock:       parseInt(document.getElementById('n-stock').value),
+                        tipo:        document.getElementById('n-tipo').value
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    msg.className = 'mt-4 p-4 rounded-xl text-sm bg-emerald-50 border border-emerald-200 text-emerald-800';
+                    msg.textContent = '✓ Producto creado correctamente';
+                    msg.classList.remove('hidden');
+                    document.getElementById('form-nuevo').reset();
+                    showToast('✓ Producto creado');
+                } else {
+                    msg.className = 'mt-4 p-4 rounded-xl text-sm bg-red-50 border border-red-200 text-red-700';
+                    msg.textContent = '✗ ' + (data.error || 'Error al crear');
+                    msg.classList.remove('hidden');
+                }
+            } catch (e) {
+                msg.className = 'mt-4 p-4 rounded-xl text-sm bg-red-50 border border-red-200 text-red-700';
+                msg.textContent = '✗ Error de conexión';
+                msg.classList.remove('hidden');
+            }
+        });
+
+        // EDITAR PRODUCTO
+        function abrirEditar(id, nombre, descripcion, precio, stock) {
+            document.getElementById('edit-id').value = id;
+            document.getElementById('edit-nombre').value = nombre;
+            document.getElementById('edit-descripcion').value = descripcion;
+            document.getElementById('edit-precio').value = precio;
+            document.getElementById('edit-stock').value = stock;
+            document.getElementById('edit-msg').classList.add('hidden');
+            document.getElementById('modal-editar').classList.remove('hidden');
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-editar').classList.add('hidden');
+        }
+
+        async function guardarEdicion() {
+            const id = document.getElementById('edit-id').value;
+            const msg = document.getElementById('edit-msg');
+            try {
+                const res = await fetch('/productos/' + id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken },
+                    body: JSON.stringify({
+                        nombre:      document.getElementById('edit-nombre').value,
+                        descripcion: document.getElementById('edit-descripcion').value,
+                        precio:      parseFloat(document.getElementById('edit-precio').value),
+                        stock:       parseInt(document.getElementById('edit-stock').value)
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    cerrarModal();
+                    cargarProductos();
+                    showToast('✓ Producto actualizado');
+                } else {
+                    msg.className = 'mt-3 p-3 rounded-xl text-sm bg-red-50 border border-red-200 text-red-700';
+                    msg.textContent = '✗ ' + (data.error || 'Error al actualizar');
+                    msg.classList.remove('hidden');
+                }
+            } catch (e) {
+                msg.className = 'mt-3 p-3 rounded-xl text-sm bg-red-50 border border-red-200 text-red-700';
+                msg.textContent = '✗ Error de conexión';
+                msg.classList.remove('hidden');
+            }
+        }
+
+        // ELIMINAR PRODUCTO
+        async function eliminarProducto(id, nombre) {
+            if (!confirm('¿Eliminar "' + nombre + '"? Esta acción no se puede deshacer.')) return;
+            try {
+                const res = await fetch('/productos/' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + adminToken }
+                });
+                if (res.ok) {
+                    cargarProductos();
+                    showToast('✓ Producto eliminado');
+                } else {
+                    showToast('✗ Error al eliminar', false);
+                }
+            } catch (e) {
+                showToast('✗ Error de conexión', false);
+            }
+        }
+
+        // CERRAR SESIÓN
+        function cerrarSesion() {
+            adminToken = null;
+            document.getElementById('vista-panel').classList.add('hidden');
+            document.getElementById('vista-panel').classList.remove('flex');
+            document.getElementById('vista-login').classList.remove('hidden');
+            document.getElementById('nav-admin').classList.add('hidden');
+            document.getElementById('password').value = '';
+        }
+
+        // TOAST
+        function showToast(msg, ok = true) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-inner').textContent = msg;
+            document.getElementById('toast-inner').className = `${ok ? 'bg-gray-900' : 'bg-red-600'} text-white text-sm font-medium px-4 py-3 rounded-xl shadow-lg`;
+            toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 2500);
+        }
+    </script>
+</body>
+</html>

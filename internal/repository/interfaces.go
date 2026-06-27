@@ -21,6 +21,7 @@ type IClienteRepository interface {
 	Crear(cliente *models.Cliente) error
 	BuscarPorID(id uint) (*models.Cliente, error)
 	BuscarPorEmail(email string) (*models.Cliente, error)
+	BuscarAdminPorEmail(email string, admin *models.Administrador) error
 	Actualizar(cliente *models.Cliente) error
 }
 
